@@ -7,7 +7,7 @@ import torch
 from typing import List, Tuple
 import clip  # type: ignore
 import PIL  # type: ignore
-
+import time
 
 from lm_nav.navigation_graph import NavigationGraph
 from lm_nav.utils import rectify_and_crop
@@ -42,7 +42,7 @@ def nodes_landmarks_similarity(
     result = np.zeros((graph.vert_count, len(landmarks)))
     model, preprocess = clip.load("ViT-L/14")
     model.cuda().eval()
-
+    
     text_labels = ["A photo of " + desc for desc in landmarks]
     text_tokens = clip.tokenize(text_labels).cuda()
     with torch.no_grad():
@@ -72,7 +72,10 @@ def find_optimal_route(
     score[start] = 0.0
     score, prev1 = dijskra_transform(score, graph, alpha)
     prev_tables = [prev1]
+    st=time.time()
     similarity_matrix = nodes_landmarks_similarity(graph, landmarks)
+    et=time.time()
+    print(et-st)
     for i in range(len(landmarks)):
         score += similarity_matrix[:, i]
         score, prev = dijskra_transform(score, graph, alpha)
